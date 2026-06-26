@@ -1,7 +1,4 @@
-name: Checkout
-uses: actions/checkout@v4
-with:
-  ref: ${{ env.TARGET_BRANCH }}
+name: visite archiver
 on:
   schedule:
     - cron: "0 22 * * *"
