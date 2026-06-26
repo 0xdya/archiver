@@ -37,8 +37,8 @@ jobs:
             exit 1
           fi
 
-          if [ -f archive.txt ]; then
-            LAST_VISITS=$(grep -oE '[0-9,]+ زيارة' archive.txt | tail -n 1 | tr -d ',' | grep -oE '[0-9]+')
+          if [ -f archive.json ]; then
+            LAST_VISITS=$(python3 -c "import json; data=json.load(open('archive.json')); print(data[-1]['visits'] if data else 0)")
           else
             LAST_VISITS=0
           fi
@@ -58,18 +58,26 @@ jobs:
           MONTH_AR="${MONTHS[$MONTH_NUM]}"
           TODAY="$MONTH_AR $DAY، $YEAR"
 
-          FORMATTED_VISITS=$(printf "%'d" "$VISITS")
-          FORMATTED_DIFF=$(printf "%'d" "$DIFF")
+          python3 -c "
+          import json, os
 
-          [ ! -f archive.txt ] && touch archive.txt
+          path = 'archive.json'
+          data = []
+          if os.path.exists(path):
+              with open(path) as f:
+                  data = json.load(f)
 
-          LAST_DATE=$(grep -E "^[أ-ي]+ [0-9]+، [0-9]{4}$" archive.txt | tail -n 1 || echo "")
-          if [ "$TODAY" != "$LAST_DATE" ]; then
-            echo -e "\n$TODAY" >> archive.txt
-          fi
+          data.append({
+              'date': '$TODAY',
+              'visits': $VISITS,
+              'diff': $DIFF
+          })
 
-          echo "23:00 => $FORMATTED_VISITS زيارة (+$FORMATTED_DIFF)" >> archive.txt
-          git add archive.txt
+          with open(path, 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+          "
+
+          git add archive.json
           git pull --rebase origin ${{ env.TARGET_BRANCH }} || true
-          git commit -m "تحديث تلقائي - $TODAY (+$FORMATTED_DIFF زيارة) [skip ci] [vercel skip ci]"
+          git commit -m "تحديث تلقائي - $TODAY (+$DIFF زيارة) [skip ci] [vercel skip ci]"
           git push origin ${{ env.TARGET_BRANCH }}
