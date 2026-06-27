@@ -37,12 +37,13 @@ jobs:
             exit 1
           fi
 
-          if [ -f archive.json ]; then
-            LAST_VISITS=$(python3 -c "import json; data=json.load(open('archive.json')); print(data[-1]['visits'] if data else 0)")
+          if [ -f archive.txt ]; then
+            LAST_LINE=$(tail -n 1 archive.txt)
+            LAST_VISITS=$(echo "$LAST_LINE" | grep -oP '(?<==> )\d+' | head -1)
+            LAST_VISITS=${LAST_VISITS:-0}
           else
             LAST_VISITS=0
           fi
-          LAST_VISITS=${LAST_VISITS:-0}
 
           DIFF=$((VISITS - LAST_VISITS))
 
@@ -51,33 +52,25 @@ jobs:
             exit 0
           fi
 
-          MONTHS=("" "جانفي" "فيفري" "مارس" "أفريل" "ماي" "جوان" "جويلية" "أوت" "سبتمبر" "أكتوبر" "نوفمبر" "ديسمبر")
-          MONTH_NUM=$(TZ=Africa/Algiers date +"%m" | sed 's/^0//')
-          DAY=$(TZ=Africa/Algiers date +"%d")
-          YEAR=$(TZ=Africa/Algiers date +"%Y")
-          MONTH_AR="${MONTHS[$MONTH_NUM]}"
-          TODAY="$MONTH_AR $DAY، $YEAR"
+          DATE=$(TZ=Africa/Algiers date +"%b %d, %Y")
+          TIME=$(TZ=Africa/Algiers date +"%H:%M")
 
-          python3 -c "
-          import json, os
+          if [ -f archive.txt ]; then
+            LAST_DATE=$(tail -n 2 archive.txt | head -n 1)
+            if [[ "$LAST_DATE" == "$DATE" ]]; then
+              sed -i '$d' archive.txt
+              echo "$TIME => $VISITS visits (+$DIFF)" >> archive.txt
+            else
+              echo "" >> archive.txt
+              echo "$DATE" >> archive.txt
+              echo "$TIME => $VISITS visits (+$DIFF)" >> archive.txt
+            fi
+          else
+            echo "$DATE" >> archive.txt
+            echo "$TIME => $VISITS visits (+$DIFF)" >> archive.txt
+          fi
 
-          path = 'archive.json'
-          data = []
-          if os.path.exists(path):
-              with open(path) as f:
-                  data = json.load(f)
-
-          data.append({
-              'date': '$TODAY',
-              'visits': $VISITS,
-              'diff': $DIFF
-          })
-
-          with open(path, 'w', encoding='utf-8') as f:
-              json.dump(data, f, ensure_ascii=False, indent=2)
-          "
-
-          git add archive.json
+          git add archive.txt
           git pull --rebase origin ${{ env.TARGET_BRANCH }} || true
-          git commit -m "تحديث تلقائي - $TODAY (+$DIFF زيارة) [skip ci] [vercel skip ci]"
+          git commit -m "تحديث تلقائي - $DATE (+$DIFF زيارة) [skip ci] [vercel skip ci]"
           git push origin ${{ env.TARGET_BRANCH }}
