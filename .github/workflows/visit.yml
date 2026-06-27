@@ -74,5 +74,5 @@ jobs:
           git pull --rebase origin ${{ env.TARGET_BRANCH }} || true
           git commit \
             --author="0xdya <0xdya@proton.me>" \
-            -m "تحديث تلقائي - $DATE (+$DIFF زيارة) [skip ci] [vercel skip ci]"
+            -m "تحديث يوم - $DATE (+$DIFF زيارة) [skip ci] [vercel skip ci]"
           git push origin ${{ env.TARGET_BRANCH }}
