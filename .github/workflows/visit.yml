@@ -54,18 +54,17 @@ jobs:
           DATE=$(TZ=Africa/Algiers date +"%b %d, %Y")
           TIME=$(TZ=Africa/Algiers date +"%H:%M")
 
+          TEMP_FILE=$(mktemp)
+          
+          echo "$DATE" > "$TEMP_FILE"
+          echo "$TIME => $VISITS visits (+$DIFF)" >> "$TEMP_FILE"
+          
           if [ -f archive.txt ]; then
-            FIRST_DATE=$(head -n 1 archive.txt)
-            if [[ "$FIRST_DATE" == "$DATE" ]]; then
-              sed -i '2d' archive.txt
-              sed -i "2i$TIME => $VISITS visits (+$DIFF)" archive.txt
-            else
-              sed -i "1i$TIME => $VISITS visits (+$DIFF)\n$DATE" archive.txt
-            fi
-          else
-            echo "$DATE" > archive.txt
-            echo "$TIME => $VISITS visits (+$DIFF)" >> archive.txt
+            echo "" >> "$TEMP_FILE"
+            cat archive.txt >> "$TEMP_FILE"
           fi
+          
+          mv "$TEMP_FILE" archive.txt
 
           git add archive.txt
           git pull --rebase origin ${{ env.TARGET_BRANCH }} || true
