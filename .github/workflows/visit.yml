@@ -7,8 +7,12 @@ permissions:
   contents: write
 env:
   TARGET_BRANCH: main
-  GIT_NAME: "0xdya"
-  GIT_EMAIL: "0xdya@proton.me"
+#  GIT_NAME: "0xdya"
+#  GIT_EMAIL: "0xdya@proton.me"
+
+  GIT_NAME: "github-actions[bot]"
+  GIT_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
+
   FIREBASE_URL: "https://oxdyaa-default-rtdb.firebaseio.com/visits.json"
 jobs:
   commit:
