@@ -72,7 +72,5 @@ jobs:
 
           git add archive.txt
           git pull --rebase origin ${{ env.TARGET_BRANCH }} || true
-          git commit \
-            --author="0xdya <0xdya@proton.me>" \
-            -m "تحديث يوم - $DATE (+$DIFF زيارة) "
+          git commit -m "تحديث يوم - $DATE (+$DIFF زيارة) "
           git push origin ${{ env.TARGET_BRANCH }}
